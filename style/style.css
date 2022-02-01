@@ -1,0 +1,21 @@
+
+body {
+    background-color: lightskyblue;
+}
+
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+}
+
+/* Game board*/
+#board {
+    width: 350px;
+    height: 350px;
+    box-shadow: 0 0 20px blue;
+}
+
