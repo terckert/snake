@@ -1,27 +1,5 @@
 // Keypress listener
-document.querySelector('body').addEventListener('keyup', (e) => {
-    key = e.key;                        // Get key string
-    // Comparison of head and neck x and y values to determine if input should be ignored
-    // due to the snake folding into itself.
-    if (key === 'ArrowUp') {            
-        if (snake.head.y - 1 !== snake.neck.y)
-            heading = NORTH;
-    }
-    else if (key === 'ArrowRight') {    
-        if (snake.head.x + 1 !== snake.neck.x)
-            heading = EAST;
-    }
-    else if (key === 'ArrowDown') {     
-        if (snake.head.y + 1 !== snake.neck.y)
-            heading = SOUTH;
-    }
-    else {
-        if (snake.head.x - 1 !== snake.neck.x)
-            heading = WEST;
-    }
-    console.log(heading);
-    //moveSnake();
-});
+const body = document.querySelector('body');
 
 // Game colors
 const emptyColor = 'black';
@@ -52,33 +30,47 @@ const WEST = 'WEST';
 const EMPTY = 'EMPTY';
 const SNAKE = 'SNAKE';
 const FRUIT = 'FRUIT';
+const WALL = 'WALL';
 
 // Update time variable
-let TIME = 250;
+let TIME = 150;
 
-// Time delay function, parameter is in milliseconds
-function setDelay(msDelay)
-{
-    setTimeout(function(){
-        console.log(new Date());
-    },
-    msDelay);
-}
+// Game state value : boolean False : not GAMEOVER, true : GAMEOVER
+let GAMEOVER;
+let gameInterval;
 
-function gameStart() {
-    // Fill canvas with black background.
-    board.fillStyle = emptyColor;
-    board.fillRect(0, 0, 350, 350);
-
+// Sets the starting board values and draws the starting snake.
+function boardSet() {
+    // Set canvas background to black
+    fillCanvas();
+    
     // Create board state
     boardState = resetBoardState();
     snake = new Snake();
     snake.set();
 
-    gamePlaying = false;
-    setInterval(moveSnake, TIME)
-    
+    // Draw first fruit
+    drawFruit();
 
+    // Set initial keypress listener
+    body.addEventListener('keyup', gameStart);
+}
+
+function gameStart(e) {
+
+    // Set initial direction request
+    setDirection(e);
+    
+    // Replace event listener
+    body.removeEventListener('keyup', gameStart);
+    body.addEventListener('keyup', setDirection);
+
+    // Set gameover flag to false
+    GAMEOVER = false;
+    
+    // Set the game into update loop
+    gameInterval = setInterval(gameUpdate, TIME);
+    
 }
 
 // Creates the snake. Snake is a 1D array. Head is the first item in array.
@@ -162,33 +154,60 @@ function resetBoardState() {
     return arr; 
 }
 
+// Game frame update
+function gameUpdate() {
+    console.log(new Date());
+    const newHead = newHeadCoordinates();
+    let destVal = destinationValue(newHead);
+    
+    // Remove the tail if the spot is not a wall or fruit then get the new
+    // destination value. New destination value is needed to prevent the snake
+    // from dying to it's tail if it would otherwise move. We also don't cut
+    // the tail if it eats a fruit
+    if (destVal === SNAKE || destVal === EMPTY) {
+        removeTail();
+        destVal = destinationValue(newHead);
+    }
+
+    // If after the check above the value is wall or snake, the game is over
+    if (destVal === WALL || destVal === SNAKE) {
+        GAMEOVER = true;
+    }
+
+    // Draw a new piece of fruit if player successfully navigated to it.
+    if (destVal === FRUIT) {
+        drawFruit()
+    }
+
+    if (!GAMEOVER) {                    // Draw the new head
+        moveSnake(newHead);
+    }
+    else                                // Stop update loop
+    {
+        clearInterval(gameInterval);
+    }
+}
+
 // Creates and draws the new head of the snake.
-function moveSnake() {
-    removeTail();
+function moveSnake(bodypart) {
+    // removeTail();
     
     // Get old head (x,y) coordinates
-    let newX = snake.head.x;
-    let newY = snake.head.y;
+    const newX = bodypart.x;
+    const newY = bodypart.y;
     board.fillStyle = snakeColor;
     
     if (heading === NORTH) {
-        newY--;
         board.fillRect(newX*10+1, newY*10+1, 8, 10);
-
     } else if (heading === EAST) {
-        newX++;
         board.fillRect(newX*10-2, newY*10+1, 11, 8);
-
     } else if (heading === SOUTH) {
-        newY++;
         board.fillRect(newX*10+1, newY*10-2, 8, 11);
-
     } else {
-        newX--;
         board.fillRect(newX*10+1, newY*10+1, 11, 8);
     }
 
-    snake.body.unshift(new Bodypart(newX, newY));
+    snake.body.unshift(bodypart);
     boardState[newX][newY] = SNAKE;
     
     snake.set();
@@ -202,4 +221,81 @@ function removeTail() {
     board.fillStyle = emptyColor;
     board.fillRect(snake.tail.x*10-1, snake.tail.y*10-1, 12, 12);
     snake.body.pop();
+}
+
+// Get coordinates for new head and return
+function newHeadCoordinates() {
+    let retVal = new Bodypart(snake.head.x, snake.head.y);
+    if (heading === NORTH) {
+        retVal.y--;
+    } else if (heading === EAST) {
+        retVal.x++;
+    } else if (heading === SOUTH) {
+        retVal.y++;
+    } else {
+        retVal.x--;
+    }
+    return retVal;
+}
+
+function setDirection(e) {
+    key = e.key;                        // Get key string
+    // Comparison of head and neck x and y values to determine if input should be ignored
+    // due to the snake folding into itself.
+    if (key === 'ArrowUp') {            
+        if (snake.head.y - 1 !== snake.neck.y)
+            heading = NORTH;
+    }
+    else if (key === 'ArrowRight') {    
+        if (snake.head.x + 1 !== snake.neck.x)
+            heading = EAST;
+    }
+    else if (key === 'ArrowDown') {     
+        if (snake.head.y + 1 !== snake.neck.y)
+            heading = SOUTH;
+    }
+    else {
+        if (snake.head.x - 1 !== snake.neck.x)
+            heading = WEST;
+    }
+    console.log(heading);
+    //moveSnake();
+}
+
+// Fill canvas with black background.
+function fillCanvas() {
+    board.fillStyle = emptyColor;
+    board.fillRect(0, 0, 350, 350);
+}
+
+// Get's the boardstate value of a pair of coordinates
+function destinationValue(coord) {
+
+    // Check if value is within bounds
+    if (
+        coord.x < 0 || coord.x > rowmax - 1 ||
+        coord.y < 0 || coord.y > colmax - 1
+    ) {
+        return WALL;
+    }
+
+    return boardState[coord.x][coord.y];    
+}
+
+// Draw fruit at random spot on board
+function drawFruit() {
+    let potentialSpot;
+    while (true)
+    {
+        potentialSpot = new Bodypart(
+            Math.floor(Math.random()*rowmax),
+            Math.floor(Math.random()*colmax)
+        )
+        if (destinationValue(potentialSpot) === EMPTY) break;
+    }
+    // Set the board grid to value
+    boardState[potentialSpot.x][potentialSpot.y] = FRUIT;
+    // Set draw the fruit
+    board.fillStyle = fruitColor;
+    board.fillRect(potentialSpot.x*10+1, potentialSpot.y*10+1, 8, 8);
 }
