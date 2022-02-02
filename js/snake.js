@@ -13,6 +13,10 @@ const rowmax = 35;
 // Game window
 const board = document.querySelector('#board').getContext('2d');
 
+// Modals
+const isntructionsModal = document.querySelector('#first-load-modal');
+const gameoverModal = document.querySelector('#gameover-modal');
+
 // Game pieces
 let boardState;                         // 2D array representing board state
 let snake;                              // 1D array representing snake
@@ -185,6 +189,7 @@ function gameUpdate() {
     else                                // Stop update loop
     {
         clearInterval(gameInterval);
+        gameoverModal.style.display = 'flex';
     }
 }
 
@@ -298,4 +303,23 @@ function drawFruit() {
     // Set draw the fruit
     board.fillStyle = fruitColor;
     board.fillRect(potentialSpot.x*10+1, potentialSpot.y*10+1, 8, 8);
+}
+
+// Fade out effect for modals. Each button that calls this function has a 
+// parent container, followed by the modal container. Get ID and apply fade
+// out animation. Then set display to none to remove the element in total.
+function fadeOut(e) {
+    // Get ancestor ID
+    const ancestor = e.parentNode.parentNode.id;
+    // Select main modal
+    const modal = document.querySelector(`#${ancestor}`);
+    console.table(ancestor);            // Logs the ancestor
+    console.table(modal);               // Logs the modal
+    
+    modal.classList.add('fade-out');    // Fade out animation
+    // Call delayed function to remove modal view.
+    setTimeout(()=> {
+        modal.classList.remove('fade-out');
+        modal.style.display = 'none';
+    }, 680);
 }

@@ -15,8 +15,7 @@
         <canvas class="board" id="board" width='350' height="350" background='black'></canvas>
         
     </main>
-
-    <div id="first-load-modal" class='modal show'>
+    <div id="first-load-modal" class='modal hide'>
         <div class="modal-body">
             <h1 class="instructions">Instructions</h1>
             <p class="instructions">
@@ -26,21 +25,19 @@
                 <b>If</b> the snake runs into itself or the edge it's game over. 
                 <b>The</b> game starts when you make your first selection.                
             </p>
-            <button class="instructions" onclick="boardSet()">Let's start!</button>
+            <button id='instructionsBtn' class="instructions" onclick="boardSet();fadeOut(this);">Let's start!</button>
         </div>
     </div>
-
-    <div id="gameover-modal" class="modal show">
+    <div id="gameover-modal" class="modal hide">
         <div class="modal-body">
             <h1 class="gameover">Game Over!</h1> 
             <div class='score-line'>
                 <p class="gameover">Score:</p>
                 <p class="score">69420</p>
             </div>
-            <button class="restart" onclick="boardSet()">New Game</button>
+            <button id='gameoverBtn' class="restart" onclick="boardSet();fadeOut(this);">New Game</button>
         </div>
     </div>
-    
     <script src="./js/snake.js"></script>
 </body>
 </html>
